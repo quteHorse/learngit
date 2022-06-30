@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_PATTERN">%highlight{%d{yyyy-MM-dd HH:mm:ss} %-5level
+            [%thread] %logger{1.} - %msg%n%}</Property>
+        <Property name="filename">iplat.$${date:yyyy-MM-dd HH时mm分ss秒}.log</Property>
+        <property name="LOG_HOME">/home/mmd/program/logs</property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+        </Console>
+
+        <RollingFile name="MyFile" fileName="/home/mmd/program/logs/${filename}"
+                     filePattern="${LOG_HOME}/%d{yyyy-MM-dd HH时mm分ss秒}.log">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{1.} - %msg%throwable{short}" />
+            <Policies>
+                <OnStartupTriggeringPolicy />
+                <!--每1小时/分/... 生成一个文件, 时间依据filePattern的配置 -->
+                <TimeBasedTriggeringPolicy interval="1"/>
+                <!-- <SizeBasedTriggeringPolicy size="200m" /> -->
+            </Policies>
+            <DefaultRolloverStrategy max="30">
+                //maxDepth表示向下探索的深度
+                <Delete basePath="${LOG_HOME}/" maxDepth="2">
+                    <IfFileName glob="*.log" />
+                    <!--!Note: 这里的age必须和filePattern协调, 后者是精确到HH, 这里就要写成xH, xd就不起作用 另外, 数字最好>2,
+                        否则可能造成删除的时候, 最近的文件还处于被占用状态,导致删除不成功! -->
+                    <!--7天 -->
+                    <IfLastModified age="10s" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- <TextArea name="platLogAppender">
+            <PatternLayout pattern="%m%n" />
+        </TextArea>
+        <Async name="Async">
+            <AppenderRef ref="MyFile" />
+            <AppenderRef ref="platLogAppender" />
+        </Async> -->
+    </Appenders>
+    <Loggers>
+        <!--过滤掉spring的一些无用的debug信息 -->
+        <logger name="org.springframework" level="error" />
+        <logger name="org.thymeleaf" level="error" />
+        <Root level="trace">
+            <AppenderRef ref="Console" />
+            <!-- <AppenderRef ref="Async" /> -->
+            <AppenderRef ref="MyFile" />
+        </Root>
+    </Loggers>
+</Configuration>
